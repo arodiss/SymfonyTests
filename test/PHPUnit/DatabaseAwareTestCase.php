@@ -5,70 +5,64 @@ use Doctrine\Common\Tester\DataFixture\ReferenceRepositorySerializer;
 
 use Doctrine\Common\Tester\Tester;
 
-class DatabaseAwareTestCase extends ContainerAwareTestCase
-{
-    /**
-     * @var \Doctrine\Common\Tester\Tester
-     */
-    protected static  $dbTester;
+class DatabaseAwareTestCase extends ContainerAwareTestCase {
+	/**
+	 * @var \Doctrine\Common\Tester\Tester
+	 */
+	protected static $dbTester;
 
-    protected static $unserializedReferenceRepository;
+	protected static $unserializedReferenceRepository;
 
-    protected function setUp()
-    {
-        parent::setUp();
+	protected function setUp() {
+		parent::setUp();
 
-        static::$dbTester = new Tester();
+		static::$dbTester = new Tester();
 		//here youshould register passes
 		static::$dbTester->useEm(static::$container->get('doctrine.orm.entity_manager'));
 
-        if (null == static::$unserializedReferenceRepository) {
-            static::$unserializedReferenceRepository = unserialize(file_get_contents(
-                static::$container->getParameter('kernel.cache_dir') . '/commonReferenceRepository'
-            ));
-        }
+		if (null == static::$unserializedReferenceRepository) {
+			static::$unserializedReferenceRepository = unserialize(file_get_contents(
+				static::$container->getParameter('kernel.cache_dir') . '/commonReferenceRepository'
+			));
+		}
 
-        static::$dbTester->setReferenceRepositoryData(static::$unserializedReferenceRepository);
+		static::$dbTester->setReferenceRepositoryData(static::$unserializedReferenceRepository);
 
-        $this->startTransaction();
-    }
+		$this->startTransaction();
+	}
 
-    protected function tearDown()
-    {
-        $this->rollbackTransaction();
+	protected function tearDown() {
+		$this->rollbackTransaction();
 
-        parent::tearDown();
-    }
+		parent::tearDown();
+	}
 
-    /**
-     * @param $name Fixture name
-     *
-     * @return Object
-     */
-    protected function getFixtureReference($name)
-    {
-        return static::$dbTester->get($name);
-    }
+	/**
+	 * @param $name Fixture name
+	 *
+	 * @return Object
+	 */
+	protected function getFixtureReference($name) {
+		return static::$dbTester->get($name);
+	}
 
-    protected function startTransaction()
-    {
-        /**
-         * @var $em \Doctrine\ORM\EntityManager
-         */
-        $em = static::$container->get('doctrine.orm.entity_manager');
-        $em->clear();
-        $em->getConnection()->beginTransaction();
-    }
+	protected function startTransaction() {
+		/**
+		 * @var $em \Doctrine\ORM\EntityManager
+		 */
+		$em = static::$container->get('doctrine.orm.entity_manager');
+		$em->clear();
+		$em->getConnection()->beginTransaction();
+	}
 
-    protected function rollbackTransaction()
-    {
-        $em = static::$container->get('doctrine.orm.entity_manager');
+	protected function rollbackTransaction() {
+		$em = static::$container->get('doctrine.orm.entity_manager');
 
-        $connection = $em->getConnection();
+		$connection = $em->getConnection();
 
-        while ($connection->isTransactionActive()) {
-            $connection->rollback();
-        }
-    }
+		while ($connection->isTransactionActive()) {
+			$connection->rollback();
+		}
+	}
 
 }
